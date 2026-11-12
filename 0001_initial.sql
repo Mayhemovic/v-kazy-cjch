@@ -1,0 +1,10 @@
+CREATE TABLE records (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE accounts (id TEXT PRIMARY KEY, login TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','accountant')), name TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE sessions (hash TEXT PRIMARY KEY, employee TEXT, account TEXT, workplace TEXT NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE devices (hash TEXT PRIMARY KEY, employee TEXT NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE activations (hash TEXT PRIMARY KEY, employee TEXT NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE limits (id TEXT PRIMARY KEY, count INTEGER NOT NULL, reset INTEGER NOT NULL);
+CREATE TABLE audit (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT);
+CREATE INDEX sessions_expiry ON sessions(expires);
+CREATE INDEX devices_employee ON devices(employee);
+CREATE INDEX audit_date ON audit(at);

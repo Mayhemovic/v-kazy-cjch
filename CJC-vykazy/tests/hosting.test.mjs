@@ -1,5 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {createClient} from '@libsql/client';import {databaseAdapter} from '../server/database.mjs';import {migrate} from '../scripts/migration-lib.mjs';import app from '../server/app.mjs';import handler,{config} from '../netlify/functions/api.mjs';
-test('Netlify routes API and refuses an unconfigured database',async()=>{assert.equal(config.path,'/api/data');const r=await handler(new Request('https://test.netlify.app/api/data'),{ip:'127.0.0.1'});assert.equal(r.status,503)});
+test('Netlify routes API and refuses an unconfigured database',async()=>{
+ const keys=['TURSO_DATABASE_URL','TURSO_AUTH_TOKEN'];
+ const saved=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+ try{
+  for(const key of keys)delete process.env[key];
+  assert.equal(config.path,'/api/data');
+  const r=await handler(new Request('https://test.netlify.app/api/data'),{ip:'127.0.0.1'});
+  assert.equal(r.status,503);
+ }finally{
+  for(const key of keys){if(saved[key]===undefined)delete process.env[key];else process.env[key]=saved[key];}
+ }
+});
 test('Turso libSQL migration, setup, atomic rollback, PIN login, bulk rows, submission and PREMIER settings',async()=>{
  const client=createClient({url:':memory:'});try{
  await migrate(client);await migrate(client);const DB=databaseAdapter(client),env={DB,APP_ENV:'production',CLIENT_IP:'127.0.0.1',AUTH_SECRET:'test-secret-only-12345678901234567890',SETUP_TOKEN:'installer-test'};
